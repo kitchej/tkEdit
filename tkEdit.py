@@ -11,6 +11,8 @@ import tkinter.ttk as ttk
 from tkinter import messagebox
 
 import utils
+from dialogs.find_and_replace import FindAndReplaceWin
+from dialogs.font_chooser import FontChooser
 from editor import Editor
 from menus.file_menu import FileMenu
 from menus.edit_menu import EditMenu
@@ -25,6 +27,7 @@ class Main(tk.Tk):
 
         self.FIND_AND_REP_WIN = None
         self.FONT_CHOOSE_WIN = None
+        self.SPELL_CHECK_WIN = None
 
         self.geometry('1000x500')
         self.protocol('WM_DELETE_WINDOW', self.close)
@@ -68,6 +71,27 @@ class Main(tk.Tk):
         self.title(self.file_menu.filename)
         self.update_gui()
 
+
+    def quit_find_and_replace(self, *args):
+        self.editor.clear_tags('found')
+        if isinstance(self.FIND_AND_REP_WIN, tk.Toplevel):
+            self.FIND_AND_REP_WIN.destroy()
+
+    def create_find_and_replace_dialog(self):
+        self.FIND_AND_REP_WIN = tk.Toplevel()
+        self.FIND_AND_REP_WIN.resizable(False, False)
+        self.FIND_AND_REP_WIN.protocol('WM_DELETE_WINDOW', self.quit_find_and_replace)
+        self.FIND_AND_REP_WIN.bind('<Destroy>', self.quit_find_and_replace)
+        _ = FindAndReplaceWin(self.FIND_AND_REP_WIN, self.editor)
+
+    def create_font_chooser_dialog(self):
+        if isinstance(self.FONT_CHOOSE_WIN, tk.Toplevel):
+            self.FONT_CHOOSE_WIN.destroy()
+        self.FONT_CHOOSE_WIN = tk.Toplevel()
+        self.FONT_CHOOSE_WIN.resizable(False, False)
+        _ = FontChooser(self.FONT_CHOOSE_WIN, self.editor)
+        self.FONT_CHOOSE_WIN.focus_set()
+
     def set_syntax_highlighter(self, extension):
         try:
             self._syntax_highlighter = self._syntax_highlighters[extension]
@@ -77,7 +101,7 @@ class Main(tk.Tk):
     def update_syntax_highlighting(self, *args):
         if self._syntax_highlighter is not None:
             for tag in self._syntax_highlighter.get_tag_names():
-                utils.clear_tags(tag, self.editor)
+                self.editor.clear_tags(tag)
             self._syntax_highlighter.highlight_syntax()
             self.update_idletasks()
 

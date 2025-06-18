@@ -55,6 +55,5 @@ class FontChooser:
         self.preview.configure(font=(preview_font, 12))
 
     def save_font_choice(self, *args):
-        self.editor_obj.font = self.font_box.get(self.font_box.curselection())
-        self.editor_obj.update_font()
+        self.editor_obj.update_font(self.font_box.get(self.font_box.curselection()))
         self.parent.destroy()

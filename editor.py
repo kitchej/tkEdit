@@ -17,12 +17,29 @@ class Editor(tk.Text):
             self.load_settings()
         self.tag_configure('found', foreground='white', background='red')
 
-    def update_font(self):
+    def update_font(self, new_font=None, new_font_size=None):
+        if new_font_size:
+            self.font_size = new_font_size
+        if new_font:
+            self.font = new_font
         self.configure(font=(self.font, self.font_size))
 
     def update_config(self):
         with open(self.settings_file, 'w+') as file:
             file.write(f'font-family:{self.font}\nfont-size:{self.font_size}')
+
+    def clear_tags(self, tag):
+        """
+        Clears a specified tag from within the editor
+        """
+        old_tags = []
+        ranges = self.tag_ranges(tag)
+        for i in range(0, len(ranges), 2):
+            start = ranges[i]
+            stop = ranges[i + 1]
+            old_tags.append((tag, str(start), str(stop)))
+        for old_tag in old_tags:
+            self.tag_remove(old_tag[0], old_tag[1], old_tag[2])
 
     def load_settings(self):
         try:

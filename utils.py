@@ -38,21 +38,6 @@ def get_string_indexes(string, text_widget, regex=False, no_case=False, start="1
         out.append((word_start, word_end))
     return out
 
-
-def clear_tags(tag, text_widget):
-    """
-    A helper function that clears a specified tag from within a text widget
-    """
-    old_tags = []
-    ranges = text_widget.tag_ranges(tag)
-    for i in range(0, len(ranges), 2):
-        start = ranges[i]
-        stop = ranges[i + 1]
-        old_tags.append((tag, str(start), str(stop)))
-    for old_tag in old_tags:
-        text_widget.tag_remove(old_tag[0], old_tag[1], old_tag[2])
-
-
 def get_tags(start, end, text_obj):
     """
     Provided by Bryan Oakley
