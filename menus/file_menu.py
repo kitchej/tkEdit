@@ -29,6 +29,7 @@ class FileMenu(tk.Menu):
         self.add_command(label='New', accelerator='Ctrl+N', command=self.new_file)
 
     def _config_syntax_highlighter(self):
+        print(self.filename)
         extension = self.filename.split('.')
         if len(extension) > 1:
             self.parent.set_syntax_highlighter(extension[-1])
@@ -92,7 +93,7 @@ class FileMenu(tk.Menu):
             return
         else:
             self.filepath = chosen_filepath
-            self.filename = os.path.split(os.path.split(chosen_filepath)[-1])
+            self.filename = os.path.split(chosen_filepath)[-1]
         self.update_recent_files()
         self._save_file()
         self._config_syntax_highlighter()

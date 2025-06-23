@@ -10,9 +10,9 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
 
-import utils
 from dialogs.find_and_replace import FindAndReplaceWin
 from dialogs.font_chooser import FontChooser
+from dialogs.spell_check import SpellChecker
 from editor import Editor
 from menus.file_menu import FileMenu
 from menus.edit_menu import EditMenu
@@ -28,6 +28,7 @@ class Main(tk.Tk):
         self.FIND_AND_REP_WIN = None
         self.FONT_CHOOSE_WIN = None
         self.SPELL_CHECK_WIN = None
+        self.filename = None
 
         self.geometry('1000x500')
         self.protocol('WM_DELETE_WINDOW', self.close)
@@ -78,19 +79,34 @@ class Main(tk.Tk):
             self.FIND_AND_REP_WIN.destroy()
 
     def create_find_and_replace_dialog(self):
+        if isinstance(self.FIND_AND_REP_WIN, tk.Toplevel):
+            self.quit_find_and_replace()
         self.FIND_AND_REP_WIN = tk.Toplevel()
+        _ = FindAndReplaceWin(self.FIND_AND_REP_WIN, self.editor)
         self.FIND_AND_REP_WIN.resizable(False, False)
+        self.FIND_AND_REP_WIN.title("Find and Replace")
         self.FIND_AND_REP_WIN.protocol('WM_DELETE_WINDOW', self.quit_find_and_replace)
         self.FIND_AND_REP_WIN.bind('<Destroy>', self.quit_find_and_replace)
-        _ = FindAndReplaceWin(self.FIND_AND_REP_WIN, self.editor)
+        self.FIND_AND_REP_WIN.focus_set()
 
     def create_font_chooser_dialog(self):
         if isinstance(self.FONT_CHOOSE_WIN, tk.Toplevel):
             self.FONT_CHOOSE_WIN.destroy()
         self.FONT_CHOOSE_WIN = tk.Toplevel()
-        self.FONT_CHOOSE_WIN.resizable(False, False)
         _ = FontChooser(self.FONT_CHOOSE_WIN, self.editor)
+        self.FONT_CHOOSE_WIN.resizable(False, False)
+        self.FONT_CHOOSE_WIN.title("Select Font")
+        self.FONT_CHOOSE_WIN.geometry("500x400")
         self.FONT_CHOOSE_WIN.focus_set()
+
+    def create_spell_check_dialog(self):
+        if isinstance(self.SPELL_CHECK_WIN, tk.Toplevel):
+            self.SPELL_CHECK_WIN.destroy()
+        self.SPELL_CHECK_WIN = tk.Toplevel()
+        _ = SpellChecker(self.SPELL_CHECK_WIN, self.editor)
+        self.SPELL_CHECK_WIN.resizable(False, False)
+        self.SPELL_CHECK_WIN.title("Spell Check")
+        self.SPELL_CHECK_WIN.focus_set()
 
     def set_syntax_highlighter(self, extension):
         try:

@@ -1,7 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
-
 import editor
 import utils
 
@@ -11,7 +10,6 @@ class FindAndReplaceWin:
 
     def __init__(self, parent, editor_obj: editor.Editor):
         self.parent = parent
-        self.parent.title("Find and Replace")
         self.editor_obj = editor_obj
         self.word_counter = 1
         self.found_word_indexes = []
@@ -79,11 +77,11 @@ class FindAndReplaceWin:
                                                 start=start)
 
     def get_all_word_indexes(self, start='1.0'):
-        '''
+        """
         Finds all instances of a word within the editor and sets self.found_word_indexes
         Returns False if no words were found
         Returns True if words were found
-        '''
+        """
         word = self.find_entry.get()
         if word == '':
             return False

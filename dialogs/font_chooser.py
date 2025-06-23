@@ -9,9 +9,6 @@ class FontChooser:
     """Dialog window for choosing a font"""
     def __init__(self, parent, editor_obj: editor.Editor):
         self.parent = parent
-        self.parent.title("Font")
-        self.parent.geometry("500x400")
-        self.parent.resizable(False, False)
         self.editor_obj = editor_obj
         self.font_list = sorted(set(tk_font.families()))
         self.font_box = tk.Listbox(self.parent, takefocus=1, exportselection=0)

@@ -23,9 +23,8 @@ class EditMenu(tk.Menu):
         self.parent.title(f'*{self.parent.filename}')
 
     def find_and_replace(self, *args):
-        self.parent.quit_find_and_replace()
         self.parent.create_find_and_replace_dialog()
 
     def spell_check(self, *args):
-        pass
+        self.parent.create_spell_check_dialog()
 
