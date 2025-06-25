@@ -1,7 +1,6 @@
-from syntax_highlighting.syntax_highlighter import SyntaxHighlighter
-import editor
+from src.syntax_highlighting.syntax_highlighter import SyntaxHighlighter
+from src import editor, utils
 import re
-import utils
 
 
 class PythonSyntaxHighlighter(SyntaxHighlighter):

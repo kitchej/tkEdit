@@ -6,11 +6,11 @@ import tkinter.ttk as ttk
 
 from Levenshtein import distance
 
-import editor
+from src.editor import Editor
 
 
 class SpellChecker:
-    def __init__(self, parent, editor_obj: editor.Editor):
+    def __init__(self, parent, editor_obj: Editor):
         self.parent = parent
         self.editor_obj = editor_obj
         self.padx = 5

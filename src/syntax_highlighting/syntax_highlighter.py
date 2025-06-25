@@ -14,8 +14,7 @@ dead set on using Tkinter's regex engine, utils.get_string_indexes() supports TC
 
 
 from abc import ABC, abstractmethod
-import editor
-import utils
+from src import editor, utils
 import tkinter as tk
 import re
 

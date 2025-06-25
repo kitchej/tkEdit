@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import font as tk_font
 
-import editor
+from src import editor
 
 
 class FontChooser:

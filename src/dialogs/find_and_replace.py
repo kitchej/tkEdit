@@ -1,8 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
-import editor
-import utils
+from src import editor, utils
 
 
 class FindAndReplaceWin:
