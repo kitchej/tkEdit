@@ -1,4 +1,5 @@
 import os
+import threading
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
@@ -12,6 +13,7 @@ from src.menus.edit_menu import EditMenu
 from src.menus.format_menu import FormatMenu
 from src.status_bar import StatusBar
 from src.syntax_highlighting.python import PythonSyntaxHighlighter
+from src.spell_check_helper import SpellCheckerHelper
 
 
 class Main(tk.Tk):
@@ -29,6 +31,8 @@ class Main(tk.Tk):
         self.editor_frame = tk.Frame(self)
         self.editor_frame.pack_propagate(False)
         self.editor = Editor(self.editor_frame)
+        self.spell_checker_helper = SpellCheckerHelper(self.editor)
+        threading.Thread(target=self.spell_checker_helper.load_dict).start()
 
         self.scrollbar = ttk.Scrollbar(self, command=self.editor.yview, cursor='arrow')
         self.editor.configure(yscrollcommand=self.scrollbar.set, relief=tk.FLAT)
@@ -56,8 +60,8 @@ class Main(tk.Tk):
         self.bind('<Control_L>n', self.file_menu.new_file)
         self.bind("<Key>", self.update_syntax_highlighting)
 
-        self._syntax_highlighter = None
-        self._syntax_highlighters = {"py": PythonSyntaxHighlighter(self.editor)}
+        self.syntax_highlighter = None
+        self.syntax_highlighters = {"py": PythonSyntaxHighlighter(self.editor)}
 
         self.in_file = in_file
         if in_file:
@@ -103,15 +107,15 @@ class Main(tk.Tk):
 
     def set_syntax_highlighter(self, extension):
         try:
-            self._syntax_highlighter = self._syntax_highlighters[extension]
+            self.syntax_highlighter = self.syntax_highlighters[extension]
         except KeyError:
-            self._syntax_highlighter = None
+            self.syntax_highlighter = None
 
     def update_syntax_highlighting(self, *args):
-        if self._syntax_highlighter is not None:
-            for tag in self._syntax_highlighter.get_tag_names():
+        if self.syntax_highlighter is not None:
+            for tag in self.syntax_highlighter.get_tag_names():
                 self.editor.clear_tags(tag)
-            self._syntax_highlighter.highlight_syntax()
+            self.syntax_highlighter.highlight_syntax()
             self.update_idletasks()
 
     def update_gui(self):
@@ -126,19 +130,15 @@ class Main(tk.Tk):
         self.after(100, self.update_gui)
 
     def close(self):
-        self.file_menu.store_recent_files()
-        if self.editor.edit_modified() == 0:
-            self.editor.update_config()
-            self.quit()
-        else:
+        if self.editor.edit_modified() != 0:
             answer = messagebox.askyesnocancel(title='Save?', message=f'Do you want to save {self.filename}'
                                                                       f' before quitting?')
             if answer:
                 self.file_menu.save()
-                self.editor.update_config()
-                self.quit()
             elif answer is None:
                 return
-            else:
-                self.editor.update_config()
-                self.quit()
+        self.file_menu.store_recent_files()
+        self.spell_checker_helper.kill_spell_check()
+        self.editor.update_config()
+        self.quit()
+

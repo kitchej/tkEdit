@@ -1,4 +1,5 @@
 import os
+import threading
 from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox, filedialog
@@ -29,7 +30,6 @@ class FileMenu(tk.Menu):
         self.add_command(label='New', accelerator='Ctrl+N', command=self.new_file)
 
     def _config_syntax_highlighter(self):
-        print(self.filename)
         extension = self.filename.split('.')
         if len(extension) > 1:
             self.parent.set_syntax_highlighter(extension[-1])
@@ -130,6 +130,7 @@ class FileMenu(tk.Menu):
         self.editor_obj.insert(0.0, text.strip('\n'))
         self.editor_obj.edit_modified(False)
         self._config_syntax_highlighter()
+        threading.Thread(target=self.parent.spell_checker_helper.check_spelling).start()
 
     def open_from_filemanager(self, *args):
         filename = os.path.split(self.filepath)[-1]
