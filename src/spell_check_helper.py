@@ -1,17 +1,13 @@
 import json
 import os
-import string
 import threading
-from tkinter import END as EDITOR_END
+import time
 
+import TCPLib.tcp_client as tcp_client
 from Levenshtein import distance
 
-from src.editor import Editor
-
 class SpellCheckerHelper:
-    def __init__(self, editor_obj: Editor):
-        self.editor_obj = editor_obj
-
+    def __init__(self):
         self.word_dict = {}
         self.word_list = []
         self.suggestions = {}
@@ -20,6 +16,8 @@ class SpellCheckerHelper:
         self._lexicon_available = False
         self._kill_spell_check = False
         self._kill_spell_check_lock = threading.Lock()
+
+        threading.Thread(target=self.load_dict).start()
 
     @staticmethod
     def sort_key(x):
@@ -36,12 +34,12 @@ class SpellCheckerHelper:
         elif str1_len > str2_len:
             str2 = f"{str2}{' ' * (str1_len - str2_len)}"
 
-        for k, (i, j) in enumerate(zip(str1, str2)):
+        for pos, (i, j) in enumerate(zip(str1, str2)):
             if i == j:
                 score += 2
-            elif k < (len(str2) - 1) and str2[k + 1] == i:
+            elif pos < (len(str2) - 1) and str2[pos + 1] == i:
                 score += 1
-            elif k > 0 and str2[k - 1] == i:
+            elif pos > 0 and str2[pos - 1] == i:
                 score += 1
 
         return score - abs(str1_len - str2_len)
@@ -88,14 +86,15 @@ class SpellCheckerHelper:
 
         return sorted(suggestions, key=self.sort_key)
 
-    def check_spelling(self):
-        text_words = self.editor_obj.get(0.0, EDITOR_END).split(' ')
+    def check_spelling(self, text_words):
         misspelled_words = []
 
         print("check_spelling(): Waiting for lexicon to be available")
         with self._lexicon_available_con:
             while not self._lexicon_available:
                 self._lexicon_available_con.wait()
+
+        text_words = text_words.split()
 
         for word in text_words:
             if self.check_kill_sig():
@@ -107,7 +106,7 @@ class SpellCheckerHelper:
             except KeyError:
                 misspelled_words.append(word)
 
-        with open("misspelled.txt", 'w') as file:
+        with open("misspelled.txt", 'w', encoding='utf-8') as file:
             for w in misspelled_words:
                 file.write(w + '\n')
 
@@ -122,5 +121,28 @@ class SpellCheckerHelper:
         print(f"check_spelling(): Completed spell check")
 
         results = json.dumps(self.suggestions, indent=4)
-        with open("spell_check_results.txt", 'w') as file:
+        with open("spell_check_results.txt", 'w', encoding='utf-8') as file:
             file.write(results)
+
+        return results
+
+
+def start_spell_check_server():
+    spell_checker = SpellCheckerHelper()
+    client = tcp_client.TCPClient()
+
+    client.connect(('127.0.0.1', 5000))
+    print("Connected to host, starting spell check server")
+    time.sleep(0.1)
+    client.send(b'ready')
+    while True:
+        msg = client.receive()
+        print(f"CHILD: {msg}")
+        if msg == b'kill':
+            spell_checker.kill_spell_check()
+            client.disconnect()
+            break
+        elif msg == b'stop':
+            spell_checker.kill_spell_check()
+        else:
+            threading.Thread(target=spell_checker.check_spelling, args=[str(msg, encoding='utf-8')]).start()

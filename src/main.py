@@ -1,5 +1,7 @@
 import os
 import threading
+import multiprocessing as mp
+import time
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox
@@ -13,12 +15,19 @@ from src.menus.edit_menu import EditMenu
 from src.menus.format_menu import FormatMenu
 from src.status_bar import StatusBar
 from src.syntax_highlighting.python import PythonSyntaxHighlighter
-from src.spell_check_helper import SpellCheckerHelper
+from src.spell_check_helper import start_spell_check_server
+import TCPLib.tcp_client as tcp_client
 
 
 class Main(tk.Tk):
     def __init__(self, in_file=None):
         tk.Tk.__init__(self)
+
+        self.spell_check_server = tcp_client.TCPClient()
+        print("Listening for spell check server...")
+        threading.Thread(target=self.spell_check_server.host_single_client, args=[('127.0.0.1', 5000)]).start()
+        mp.Process(target=start_spell_check_server).start()
+        print("Connected to spell check server")
 
         self.FIND_AND_REP_WIN = None
         self.FONT_CHOOSE_WIN = None
@@ -31,8 +40,6 @@ class Main(tk.Tk):
         self.editor_frame = tk.Frame(self)
         self.editor_frame.pack_propagate(False)
         self.editor = Editor(self.editor_frame)
-        self.spell_checker_helper = SpellCheckerHelper(self.editor)
-        threading.Thread(target=self.spell_checker_helper.load_dict).start()
 
         self.scrollbar = ttk.Scrollbar(self, command=self.editor.yview, cursor='arrow')
         self.editor.configure(yscrollcommand=self.scrollbar.set, relief=tk.FLAT)
@@ -62,12 +69,22 @@ class Main(tk.Tk):
 
         self.syntax_highlighter = None
         self.syntax_highlighters = {"py": PythonSyntaxHighlighter(self.editor)}
+        msg = b''
+        while msg != b'ready':
+            msg = self.spell_check_server.receive(512)
+
+        print(f"MAIN: {msg}")
 
         self.in_file = in_file
         if in_file:
             self.file_menu.open_file(self.in_file)
         self.title(self.file_menu.filename)
         self.update_gui()
+
+
+    def start_spell_check(self, text):
+        text.encode()
+        self.spell_check_server.send(bytes(text, 'utf-8'))
 
 
     def quit_find_and_replace(self, *args):
@@ -137,8 +154,10 @@ class Main(tk.Tk):
                 self.file_menu.save()
             elif answer is None:
                 return
+        self.spell_check_server.send(b'kill')
         self.file_menu.store_recent_files()
-        self.spell_checker_helper.kill_spell_check()
+        # self.spell_checker_helper.kill_spell_check()
         self.editor.update_config()
+        self.spell_check_server.disconnect()
         self.quit()
 

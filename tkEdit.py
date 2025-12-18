@@ -6,11 +6,14 @@ A text editor app implemented in Tkinter.
 import sys
 from src.main import Main
 
-if len(sys.argv) > 2:
-    print("Usage: tkEdit.py [filepath]")
-    sys.exit(-1)
-elif len(sys.argv) == 1:
-    m = Main()
-else:
-    m = Main(sys.argv[1])
+if __name__ == '__main__':
+    if len(sys.argv) > 2:
+        print("Usage: tkEdit.py [filepath]")
+        sys.exit(-1)
+    elif len(sys.argv) == 1:
+        m = Main()
+
+    else:
+        m = Main(sys.argv[1])
+
     m.mainloop()

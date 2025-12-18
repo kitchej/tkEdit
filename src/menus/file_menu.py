@@ -130,7 +130,7 @@ class FileMenu(tk.Menu):
         self.editor_obj.insert(0.0, text.strip('\n'))
         self.editor_obj.edit_modified(False)
         self._config_syntax_highlighter()
-        threading.Thread(target=self.parent.spell_checker_helper.check_spelling).start()
+        self.parent.start_spell_check(text.strip('\n'))
 
     def open_from_filemanager(self, *args):
         filename = os.path.split(self.filepath)[-1]
